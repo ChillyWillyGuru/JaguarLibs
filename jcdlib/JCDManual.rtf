@@ -1,0 +1,337 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang1031{\fonttbl{\f0\fnil\fcharset0 Times New Roman;}{\f1\fswiss\fprq2\fcharset0 Tahoma;}{\f2\fswiss\fprq2\fcharset0 Verdana;}}
+\viewkind4\uc1\pard\f0\fs20\par
+\par
+\pard\qc\b\f1\fs40 Jaguar Sound System\par
+CDROM Library\par
+\b0\fs16 Version 1.0b (c)2002 Robert Jurziga\par
+Last Update: 28.11.2002\fs20\par
+\b\fs40\par
+\par
+\par
+\pard\fs20 ----------------------------------------------------------------------------------------------\fs40\par
+\pard\qc\b0\i\f2\fs24 Manual Contents\i0\fs20\par
+\pard - \fs22 preface\fs20\par
+- \fs22 api overview\par
+\tab\fs20 - setup functions\par
+\tab - status functions\par
+\tab - CDDA functions\par
+\tab - configuration functions\par
+\fs22 - disclaimer\f1\fs20\par
+\b ----------------------------------------------------------------------------------------------\fs32\par
+\b0\tab\par
+\par
+\par
+\par
+\par
+-----------------------------------------------------------------------\par
+\pard\qc\b\f2 Preface\f1\fs40\par
+\pard\b0\fs32 -----------------------------------------------------------------------\par
+\fs20 The \b Jaguar CDROM library \b0 is responsable for interaction with the Jaguar CDROM's CDDA functionallity, by sending commands. Loading data from a CD isn't currently supported.\par
+Due to insufficient informations on the CDROM unit, the library doesn't cover the whole\par
+range of commands and possibility the CDROM unit offers.\par
+ \par
+It is possible to use this library as a standalone library, but due to the nature of Jaguar's hardware no audible results will be produced as long as CDDA data stream isn't channeled to the Jaguar's DACs by the DSP. SPU implements this functionallity within its DSP core, which additionally makes it possible to mix the CDDA data stream with sample playback.\par
+JCD can bee seen as a subset of the\b  Jaguar Sound System\b0 .\par
+See\i  \b\i0 SPUManual.rtf \b0 for license.\par
+\par
+\par
+Thanks for your interest.\par
+Regards,\par
+Robert\par
+eMail: jaguar64@nanomonic.de\par
+\par
+\par
+\par
+\par
+\fs32 -----------------------------------------------------------------------\par
+\pard\qc\b\f2 API Overview\par
+\pard\b0\f1 -----------------------------------------------------------------------\par
+\b\fs20\par
+Setup Functions\b0\par
+\tab JCD_Init\par
+\tab JCD_InheritSPU\par
+\par
+\b Status Functions\b0\par
+\tab JCD_Wait\par
+\tab JCD_IsPaused\par
+\tab JCD_IsMuted\par
+\tab JCD_IsStopped\par
+\b\par
+CDDA Functions\b0\par
+\tab JCD_Pause\par
+\tab JCD_Mute\par
+\tab JCD_Stop\par
+\tab JCD_PlayMSF\par
+\tab JCD_PlayMSFRange\par
+\tab JCD_PlayTrack\par
+\tab\par
+\b Configuration Functions\b0\par
+\tab JCD_SetOversample\par
+\b\fs40\par
+\b0\fs32\par
+\par
+-----------------------------------------------------------------------\par
+\pard\qc\b\f2 Setup Functions\par
+\pard\b0\f1 -----------------------------------------------------------------------\par
+\f0\fs20\par
+\par
+\f2 Function:\tab\b\fs24 JCD_Init\par
+\b0\fs20 Input:\tab\tab none\par
+Output:\tab none\par
+\par
+Description:\tab Initializes the \b JCD\b0  default data, and prepares the CDROM unit to\par
+\tab\tab recieve commands.\par
+\par
+\par
+Synopsis:\tab CallJCD\tab\tab\b Init\b0\par
+\par
+\par
+] --------------------------------------------------------------------- [\par
+\f0\par
+\par
+\f2 Function:\tab\b\fs24 JCD_InheritSPU\par
+\b0\fs20 Input:\tab\tab A0: *spulibrary\par
+Output:\tab none\par
+\par
+Description:\tab Initializes the \b SPU\b0  reference. This is used to syncronize \b JCD\b0  with \tab\tab\b SPU, \b0 when setting other CDDA oversample than the default.\par
+\tab\tab\par
+\tab\tab Parameter: \b spulibrary\par
+\tab\tab\b0 SPU Library reference.\b\i\par
+\b0\i0\par
+\par
+Synopsis:\tab lea\tab\tab SPULibrary,a0\par
+\tab\tab CallJCD\tab\tab\b InheritSPU\b0\par
+\f0\par
+\par
+\par
+\par
+\par
+\f1\fs32 -----------------------------------------------------------------------\par
+\pard\qc\b\f2 Status Functions\par
+\pard\b0\f1 -----------------------------------------------------------------------\par
+\f0\fs20\par
+\par
+\f2 Function:\tab\b\fs24 JCD_Wait\par
+\b0\fs20 Input:\tab\tab none\par
+Output:\tab none\par
+\par
+Description:\tab Block the programmflow until the CDROM uint completes its issued\par
+\tab\tab command.\par
+\par
+Synopsis:\tab CallJCD\tab\tab\b Wait\b0\par
+\par
+\par
+] --------------------------------------------------------------------- [\par
+\f0\par
+\f2\par
+Function:\tab\b\fs24 JCD_IsPaused\par
+\b0\fs20 Input:\tab\tab none\par
+Output:\tab CCR\par
+\par
+Description:\tab This function tests if the CD is in paused state.\par
+\tab\tab The status is returned in form of m68000 status bits.\par
+\par
+\par
+Synopsis:\tab CallJCD\tab\tab\b IsPaused\par
+\tab\tab\b0 bne\tab\tab Yes\par
+\tab\tab beq\tab\tab No\par
+\par
+\par
+] --------------------------------------------------------------------- [\par
+\f0\par
+\par
+\f2 Function:\tab\b\fs24 JCD_IsMuted\par
+\b0\fs20 Input:\tab\tab none\par
+Output:\tab CCR\par
+\par
+Description:\tab This function tests if mute is set or not.\par
+\tab\tab The status is returned in form of m68000 status bits.\par
+\par
+\par
+Synopsis:\tab CallJCD\tab\tab\b IsMuted\par
+\tab\tab\b0 bne\tab\tab Yes\par
+\tab\tab beq\tab\tab No\par
+\par
+\par
+] --------------------------------------------------------------------- [\par
+\par
+\f0\par
+\f2 Function:\tab\b\fs24 JCD_IsStopped\par
+\b0\fs20 Input:\tab\tab none\par
+Output:\tab CCR\par
+\par
+Description:\tab This function tests if the CD has stopped spining the disc.\par
+\tab\tab The status is returned in form of m68000 status bits.\par
+\par
+\par
+Synopsis:\tab CallJCD\tab\tab\b IsStopped\par
+\tab\tab\b0 bne\tab\tab Yes\par
+\tab\tab beq\tab\tab No\par
+\par
+\par
+\par
+\par
+\f0\par
+\par
+\par
+\f1\fs32 -----------------------------------------------------------------------\par
+\pard\qc\b\f2 CDDA Functions\par
+\pard\b0\f1 -----------------------------------------------------------------------\par
+\f0\fs20\par
+\par
+\f2 Function:\tab\b\fs24 JCD_Pause\par
+\b0\fs20 Input:\tab\tab none\par
+Output:\tab none\par
+\par
+Description:\tab This function pauses if not in paused state, or unpauses if\par
+\tab\tab in paused state the CD play.\par
+\tab\tab Sample replay isn't affected.\par
+\par
+\tab\tab\par
+Synopsis:\tab CallJCD\tab\tab\b Pause\par
+\b0\f0\par
+\par
+\f2 ] --------------------------------------------------------------------- [\par
+\f0\par
+\par
+\par
+\f2 Function:\tab\b\fs24 JCD_Mute\par
+\b0\fs20 Input:\tab\tab none\par
+Output:\tab none\par
+\par
+Description:\tab This function mutes if not in muted state, or unmutes if\par
+\tab\tab in muted state the CD audio.\par
+\tab\tab Sample replay isn't affected.\par
+\par
+\par
+Synopsis:\tab CallJCD\tab\tab\b Mute\par
+\b0\f0\par
+\par
+\f2 ] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 JCD_Stop\par
+\b0\fs20 Input:\tab\tab none\par
+Output:\tab none\par
+\par
+Description:\tab This function stops spinning the CD.\par
+\par
+\par
+Synopsis:\tab CallJCD\tab\tab\b Mute\par
+\b0\f0\par
+\par
+\f2 ] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 JCD_PlayMSF\par
+\b0\fs20 Input:\tab\tab D0: msf\par
+Output:\tab none\par
+\par
+Description:\tab Starts audio replay at the specified position on the CD.\par
+\par
+\tab\tab Parameter: \b msf\par
+\tab\tab\b0 Specifes the Minute:Second:Frame starting point where\par
+\tab\tab to start reading the CDDA data.\par
+\tab\tab The 32bit value format looks like this:\par
+\tab\tab $xxMMSSFF\par
+\tab\tab\tab xx\tab - set to zero\par
+\tab\tab\tab MM\tab - range 0-73\par
+\tab\tab\tab SS\tab - range 0-59\par
+\tab\tab\tab FF\tab - range 0-74\b\par
+\b0\par
+\par
+Synopsis:\tab move.l\tab\tab #$000200,d0\par
+\tab\tab CallJCD\tab\tab\b PlayMSF\par
+\b0\f0\par
+\par
+\f2 ] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 JCD_PlayMSFRange\par
+\b0\fs20 Input:\tab\tab D0: begin_msf\par
+\tab\tab D1: end_msf\par
+Output:\tab none\par
+\par
+Description:\tab Starts audio replay at the specified position on the CD to\par
+\tab\tab a desired end position.\par
+\par
+\tab\tab Parameter: \b begin_msf\par
+\tab\tab\b0 Specifes the Minute:Second:Frame starting point where\par
+\tab\tab to start reading the CDDA data.\par
+\tab\tab The 32bit value format looks like this:\par
+\tab\tab $xxMMSSFF\par
+\tab\tab\tab xx\tab - set to zero\par
+\tab\tab\tab MM\tab - range 0-73\par
+\tab\tab\tab SS\tab - range 0-59\par
+\tab\tab\tab FF\tab - range 0-74\b\par
+\b0\par
+\tab\tab Parameter: \b end_msf\par
+\b0\tab\tab same format as in parameter \b begin_msf\b0 .\par
+\tab\tab\b end_msf \b0 parameter should be bigger than the \b begin_msf\par
+\b0\tab\tab parameter.\par
+\par
+\par
+Synopsis:\tab move.l\tab\tab #$000200,d0\par
+\tab\tab move.l\tab\tab #$010200,d1\par
+\tab\tab CallJCD\tab\tab\b PlayMSFRange\par
+\b0\f0\par
+\par
+\f2 ] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 JCD_PlayTrack\par
+\b0\fs20 Input:\tab\tab D0: track\par
+Output:\tab none\par
+\par
+Description:\tab Starts audio replay at the specified track.\par
+\tab\tab If the track reached its end, then the next track is beeing played.\par
+\par
+\tab\tab Parameter: \b track\par
+\tab\tab\b0 Track number to play. The track should be within 1 and the\par
+\tab\tab available tracks on the CD.\par
+\par
+\b\par
+\b0 Synopsis:\tab moveq\tab\tab #1,d0\par
+\tab\tab CallJCD\tab\tab\b PlayMSF\par
+\b0\par
+\par
+\par
+\par
+\par
+\f1\fs32 -----------------------------------------------------------------------\par
+\pard\qc\b\f2 Configuration Functions\par
+\pard\b0\f1 -----------------------------------------------------------------------\par
+\f0\fs20\par
+\f2\par
+\par
+Function:\tab\b\fs24 JCD_SetOversample\par
+\b0\fs20 Input:\tab\tab D0: osamplevalue\par
+Output:\tab none\par
+\par
+Description:\tab This functions sets the CDDA oversample value.\par
+\tab\tab The oversample value is send to the CDROM unit as well\par
+\tab\tab as to the SPU to ensure proper sample playback in\par
+\tab\tab\b SPUMODE_CDDA. \b0 Refer to \b JCD_InheritSPU \b0 function for more\par
+\tab\tab details.\par
+\par
+\tab\tab Parameter: \b osamplevalue\par
+\tab\tab\b0 Specifies the oversample value. See \i spu_lib.inc \i0 for details.\b\par
+\par
+\par
+\b0 Synopsis:\tab moveq\tab\tab #2,d0\par
+\tab\tab CallJCD\tab\tab\b SetOversample\par
+\b0\par
+\par
+\par
+\f0\par
+\par
+\par
+\f2\par
+\f1\fs32 -----------------------------------------------------------------------\par
+\pard\qc\b\f2 Disclaimer\f1\fs40\par
+\pard\b0\fs32 -----------------------------------------------------------------------\par
+\f2\fs20 The Jaguar CDROM library was developed using a standard \b Jaguar\b0  with \b BJL\b0  (Behind Jaggy Lines by Bastian Schick) modifications and a standard Jaguar CDROM unit. I'm not responsible for any damages to your system using\par
+\b SPU library\b0  and any \b SPU\b0  subset, since the development system wasn't damaged during the development of this software.\par
+\par
+}
+ 

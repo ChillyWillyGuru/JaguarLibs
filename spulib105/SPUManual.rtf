@@ -1,0 +1,1213 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang1033\deflangfe1031{\fonttbl{\f0\froman\fprq2\fcharset0 Times New Roman;}{\f1\fswiss\fprq2\fcharset0 Tahoma;}{\f2\fswiss\fprq2\fcharset0 Verdana;}}
+\viewkind4\uc1\pard\nowidctlpar\lang1031\f0\fs20\par
+\par
+\pard\nowidctlpar\qc\b\f1\fs40 Jaguar Sound System\par
+SPU Library\par
+\b0\fs16 Version 1.05b (c)2002 Robert Jurziga\par
+Last Update: 17.01.2003\fs20\par
+\b\fs40\par
+\par
+\par
+\pard\nowidctlpar\fs20 ----------------------------------------------------------------------------------------------\fs40\par
+\pard\nowidctlpar\qc\b0\i\f2\fs24 Manual Contents\i0\fs20\par
+\pard\nowidctlpar - \fs22 preface\fs20\par
+- \fs22 api overview\fs24\par
+\fs20\tab - setup functions\par
+\tab - sample functions\par
+\tab - general configuration function\par
+\tab - CDDA functions\par
+\tab - playback functions\par
+\tab - voice control functions\par
+\fs22 - sample application\par
+- compilation example\par
+- general about volume\par
+- JSP! structure\par
+- JSAM structure\par
+- disclaimer & license\f1\fs20\par
+\b ----------------------------------------------------------------------------------------------\fs32\par
+\b0\tab\par
+\par
+\par
+\par
+\par
+-----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 Preface\f1\fs40\par
+\pard\nowidctlpar\b0\fs32 -----------------------------------------------------------------------\par
+\fs20\par
+The Jaguar Sound System is a sample replay system for the \b Atari Jaguar 64 \b0 bit system. The core of the Sound System is the SPU library, that offers functions to produce sound.\par
+\par
+\b SPU\b0  features:\par
+\tab - max. 12 voices\par
+\tab - user defined voice number processed by the DSP. (from 1 to 12 voices)\par
+\tab - six main mixing frequencies (8kHz, 11kHz, 16kHz, 22kHz, 32kHz, 44.1kHz)\par
+\tab - dynamic voice allocation\par
+\tab - notes from C-1 to B-7\par
+\tab - different sample loop types (forward, pingpong) with arbitary starting point\par
+\tab   and range within the sample size\par
+\tab - individual voice volume, pan and pitch\par
+\tab - modification of voice parameters during runtime\par
+\tab - custom file format for samples (\b JSP!\b0 )\par
+\tab - limited support for standard sample foramts like.\i  WAV, AIFC, AIFF, RAW\par
+\i0\par
+The mixing frequency are theoretical, due to the nature of Jaguar's hardware\par
+ the frequencies vary +5%\par
+\par
+The Jaguar Sample Pack (\b JSP!\b0 ) is a simple binary, with samples that are stacked sequecially together.  The default parameters for each sample are stored within the pack and are used\par
+when a specified sample is being played. Currently the \b JSP!'s \b0 can be evaluated out of a\par
+FastTracker module. The procedure how to create a \b JSP! \b0 is descibed later.\par
+\par
+\b JSP!\b0  features:\par
+\tab - one \b JSP!\b0  may consist of 1 upto 128 samples of varaible size,\par
+\tab   and different resolution (8 or 16 bit)\par
+\tab - each sample has it's own default parameters (volume, pan, loop etc)\par
+\tab - samples are stored as delta values (for better compression)\par
+\par
+\par
+\b SPU\b0  also has a limited support for wav, iff8svx, aiff, aifc, raw sample formats.\par
+The samples may be either in 8 or 16 bit. The limitations are, that samples has to be in mono\par
+and saved without using any codec. Codec support will be implemented later.\par
+\par
+\par
+\i Notes on using high mixing frequencies:\i0\par
+High mixing frequencies require sample output to come more frequently,\par
+this can under circumstances mean destroyed sample replay when using more voices.\par
+This is comparable with buffer underrun problem, as known from CDR burners.\par
+Therefore the mix frequencies 32kHz and 44.1kHz aren't suitable for games,\par
+where more voices are requierd to produce game atmosphere.\par
+\par
+This manual is still under developement and may contain inconsistent description.\par
+\par
+Thanks for your interest.\par
+Regards,\par
+Robert\par
+\par
+\par
+\par
+\par
+\par
+\fs32 -----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 API Overview\par
+\pard\nowidctlpar\b0\f1 -----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\par
+\pard\nowidctlpar\fs20 Setup Functions\b0\par
+\tab SPU_Init\par
+\tab SPU_EnableDSP\par
+    \tab SPU_DisableDSP\par
+    \tab SPU_SetMode\par
+\par
+\b Sample Functions\b0\par
+\tab SPU_InitJSP\par
+\tab SPU_InitRawSample\par
+\tab SPU_InitSample\par
+\par
+\b General Configuration Functions\b0\par
+\tab SPU_GetVoiceNumber\par
+\tab SPU_GetCurrentMixFreq\par
+\tab SPU_GetJaguarType\par
+\tab SPU_SetVoiceNumber\par
+\par
+\b CDDA Functions\b0\par
+\tab SPU_GetCDDAOSample\par
+\tab SPU_GetCDDAVolume\par
+\tab SPU_SetCDDAOSample\par
+\tab SPU_SetCDDAVolume\par
+\tab SPU_SetCDDAStatus\par
+\par
+\b Playback Functions\b0\par
+\tab SPU_KeyOn\par
+\tab SPU_KeyOnSync\par
+   \tab SPU_KeyOnVoice\par
+\tab SPU_KeyOnVoiceSync\par
+   \tab SPU_KeyOff\par
+\tab SPU_KeyOffVoice\par
+\tab SPU_KeyOffVoices\par
+\tab SPU_SetVoiceAttr\par
+\tab SPU_SyncVoices\par
+\tab SPU_SetSFXVolume\par
+\par
+\b Voice Control\b0\par
+\tab SPU_RetrigVoice\par
+\tab SPU_SetVoicePan\par
+\tab SPU_SetVoiceVolume\par
+\par
+\b\fs40\par
+\b0\fs32\par
+\par
+-----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 Setup Functions\par
+\pard\nowidctlpar\b0\f1 -----------------------------------------------------------------------\par
+\f0\fs20\par
+\par
+\f2 Function:\tab\b\fs24 SPU_Init\par
+\b0\fs20 Input:\tab\tab none\par
+Output:\tab none\par
+\par
+Description:\tab Initializes the \b SPU\b0  default data. No registers are written to.\par
+\par
+Synopsis:\tab CallSPU\tab\b Init\b0\par
+\par
+\par
+] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_EnableDSP\b0\fs20\par
+Input:\tab\tab none\par
+Output:\tab none\par
+\par
+Description:\tab Enables the DSP execution. This function is called after the\par
+\tab\tab SPU_Init and SPU_SetMode functions. This ensures all parameters\par
+\tab\tab are properly initialised. \par
+\par
+Synopsis:\tab CallSPU\tab\b EnableDSP\par
+\par
+\par
+\b0 ] --------------------------------------------------------------------- [\par
+\b\par
+\par
+\b0 Function:\tab\b\fs24 SPU_DisableDSP\b0\fs20\par
+Input:\tab\tab none\par
+Output:\tab none\par
+\par
+Description:\tab Disables the DSP execution.\par
+\par
+Synopsis:\tab CallSPU\tab\b DisableDSP\b0\par
+\par
+\par
+] --------------------------------------------------------------------- [\par
+\b\par
+\par
+\b0 Function:\tab\b\fs24 SPU_SetMode\b0\fs20\par
+Input:\tab\tab d0:\tab SPUMODE\par
+\tab\tab d1:\tab Mix Frequency\par
+Output:\tab none\par
+\par
+Description:\tab This function sets and initializes all neccassary data.\par
+\par
+\tab\tab Parameter: \b SPUMODE\i\par
+\b0\i0\tab\tab\b SPUMODE_NORMAL\par
+\b0\tab\tab Sets SPU into normal mode, which means:\par
+\tab\tab\tab - internal SCLK (serial clock)\par
+\tab\tab\tab - all six mixing frequencies are allowed\par
+\par
+\tab\tab\b SPUMODE_CDDA\b0\par
+\tab\tab Sets SPU into CDDA mode, which means:\par
+\tab\tab\tab - SCLK is tiggerd from the CDROM\par
+\tab\tab\tab - only 11kHz and 22kHz mixing frequency are allowed\par
+\par
+\tab\tab Parameter: \b Mix Frequency\b0\par
+\tab\tab This parameter indicates which mixing freqency is desierd to be\par
+\tab\tab used. The eqates are defined in the \i spu_lib.inc\i0  include file.\par
+\tab\tab Possible mixing frequencies are 8kHz (MF_8000) 11kHz (MF_\tab\tab\tab 11025) 16kHz (MF_16000) 22kHz (MF_22050) 32kHz (MF_32000) \tab\tab and 44.1kHz (MF_44100). The default mixing frequency is \tab\tab\tab MF_16000. When the \b SPUMODE_CDDA\b0  is used only MF_11025 \tab\tab and MF_22050 are allowed. The real mixing frequencies vary\par
+\tab\tab +5%, due to the nature of Jaguar's hardware.\par
+\par
+\par
+Synopsis:\tab moveq\tab\tab #SPUMODE_NORMAL,d0\par
+\tab\tab moveq\tab\tab #MF_32000,d1\par
+\tab\tab CallSPU\tab\b SetMode\b0\par
+\par
+\par
+\f1\fs32\par
+\par
+-----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 Sample Functions\par
+\pard\nowidctlpar\b0\f1 -----------------------------------------------------------------------\par
+\f2\fs20\par
+\par
+Function:\tab\b\fs24 SPU_InitJSP\b0\fs20\par
+Input:\tab\tab a0: *JSPAddr\par
+Output:\tab d0: 0 = ok.\par
+\tab\tab     -1 = failt.\par
+\par
+Description:\tab This function initializes a \b JSP!\b0\par
+\tab\tab The initialization doesn't require any additional memory.\par
+\par
+\tab\tab Parameter:\b JSPAddr\par
+\b0\tab\tab Points to the start address of a \b JSP!\b0  binary image.\par
+\tab\tab The address must be aligned on a long integral. \par
+\par
+Synopsis:\tab lea\tab\tab MyJSP,a0\par
+\tab\tab CallSPU\tab\b InitJSP\par
+\par
+\par
+\b0 ] --------------------------------------------------------------------- [\par
+\b\par
+\par
+\b0 Function:\tab\b\fs24 SPU_InitRawSample\b0\fs20\par
+Input:\tab\tab a0: *sample\par
+\tab\tab a1: *jsam Structure\par
+\tab\tab d0: size\par
+\tab\tab d1: volume\par
+\tab\tab d2: pan\par
+\tab\tab d3: resolution\par
+\tab\tab d4: loopType\par
+\tab\tab d5: loopBegin\par
+\tab\tab d6: loopSize\par
+\tab\tab d7: flags\par
+Output:\tab none\par
+\par
+Description:\tab This function initializes a JSAM structure with the desired attributes \tab\tab for a raw sample. The JSAM sample structure is then used as a\tab\tab\tab parameter passed to the \b SPU_KeyOn \b0 functions. The structure can \tab\tab be initialized by "hand" or as a static structure, off course.\par
+\tab\tab See \i spu_lib.inc \i0 for details on JSAM structure.\par
+\par
+\tab\tab Parameter:\b sample\par
+\b0\tab\tab Points to a arbitary start address in memory that should be used\par
+\tab\tab as a sample. Note: If defining a 16bit sample the address must be\par
+\tab\tab aligned to at least to a word integral.\par
+\par
+\tab\tab Parameter:\b jsam Structure\par
+\tab\tab\b0 Point to an empty memory jsam Structure. The stucture will\par
+\tab\tab be initialized with the desired sample attributes.\b\par
+\b0\tab\tab\par
+\tab\tab Parameter:\b size\par
+\tab\tab\b0 Sample size in bytes.\par
+\par
+\tab\tab Parameter:\b volume\par
+\b0\tab\tab Sample volume in percent. 0 - quiet, 100 - full volume\par
+\tab\tab\b\par
+\b0\tab\tab Parameter:\b pan\par
+\tab\tab\b0 Sample pan value. -127=leftmost, 0=middle, 127=right.\par
+\tab\tab The value of -128 is not used.\par
+\par
+\tab\tab Parameter:\b resolution\par
+\tab\tab\b0 Sample width. 8 or 16 bit\par
+\tab\tab\par
+\tab\tab Parameter:\b loopType\par
+\tab\tab\b0 Sample loop type. 0=no loop, 1=forward, 2=pingpong\par
+\par
+\tab\tab Parameter:\b loopBegin\par
+\tab\tab\b0 Loop begin offset in bytes. Using 16bit samples requires the offset \tab\tab to be even. The loop begin must be within the range specified by \tab\tab the parameter \b size.\b0\par
+\par
+\tab\tab Parameter:\b loopSize\b0\par
+\tab\tab Loop size in bytes. Using 16bit samples require the loop Size to be\par
+\tab\tab even. The sum of \b loopSize+loopBegin \b0 must be within the range\par
+\tab\tab specified by the parameter \b size\b0 .\b\par
+\b0\tab\tab\par
+\tab\tab Parameters:\b flags\par
+\tab\tab\b0 The flag is only relevant with 16bit samples.  Currently only one\par
+\tab\tab flag is supported. A zero indicates that the raw sample has\line\tab\tab a big endian byte ordering, while a one tells the function to swap\par
+\tab\tab the endian of this memory area.\b\par
+\b0\par
+\par
+Synopsis:\tab lea\tab\tab MySample,a0\par
+\tab\tab lea\tab\tab MyJSAM,a1\par
+\tab\tab move.l\tab\tab #MySampleEnd-MySample,d0\par
+\tab\tab moveq\tab\tab #100,d1\par
+\tab\tab moveq\tab\tab #0,d2\par
+\tab\tab moveq\tab\tab #16,d3\par
+\tab\tab moveq\tab\tab #0,d4\par
+\tab\tab moveq\tab\tab #0,d5\par
+\tab\tab moveq\tab\tab #0,d6\par
+\tab\tab moveq\tab\tab #0,d7\par
+\tab\tab CallSPU\tab\b InitRawSample\par
+\par
+\par
+\b0 ] --------------------------------------------------------------------- [\par
+\b\par
+\b0\par
+Function:\tab\b\fs24 SPU_InitSample\b0\fs20\par
+Input:\tab\tab a0: *sample\par
+\tab\tab a1: *jsam Structure\par
+\tab\tab a2: NULL\par
+Output:\tab none\par
+\par
+Description:\tab This function identifes the sample format and if recognized\par
+\tab\tab as a valid (supported) type, then a JSAM strcutre is filled\par
+\tab\tab with the nesseccary attributes.\par
+\tab\tab The functions sets the attributs loopType to no loop loopSize\par
+\tab\tab and loopBegin to 0. The default volume is 100% and the pan\par
+\tab\tab is centerd.\par
+\tab\tab The sample resolution, endian swapping if neccessay, size\par
+\tab\tab are initialized automatically by the function.\par
+\tab\tab The following formats are supported:\par
+\tab\tab - WAV mono without any codec, 8 or 16 bit.\par
+\tab\tab - IFF 8SVX mono 8 bit.\par
+\tab\tab - IFF AIFC/AIFF mono 8 or 16 bit.\par
+\tab\tab - VOC 8 bit.\par
+\tab\tab\par
+\tab\tab Parameter:\b sample\par
+\tab\tab\b0 Start address of the sample in memory. The address must be\par
+\tab\tab aligned to a word integral at least.\par
+\b\par
+\b0\tab\tab Parameter:\b jsam Structure\par
+\tab\tab\b0 Pointer to a free memory defined to be used as JSAM.\par
+\par
+\tab\tab Parameter:\b NULL\par
+\tab\tab\b0 Currently set always to NULL. This is important to be compatible\par
+\tab\tab with future versions of \b SPU\b0 .\par
+\par
+\par
+Synopsis:\tab lea\tab\tab MySample,a0\par
+\tab\tab lea\tab\tab MyJSAM,a1\par
+\tab\tab suba.l\tab\tab a2,a2\par
+\tab\tab CallSPU\tab\b InitSample\par
+\par
+\par
+\b0\par
+\par
+\f1\fs32 -----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 General Configuration Functions\par
+\pard\nowidctlpar\b0\f1 -----------------------------------------------------------------------\par
+\f2\fs20\par
+\par
+Function:\tab\b\fs24 SPU_GetVoiceNumber\b0\fs20\par
+Input:\tab\tab none\par
+Output:\tab D0: voice count\par
+\par
+\par
+Description:\tab This function returns the voices that are proccessed by the DSP \tab\tab\tab core. The return value doesn't indicate how many voices\par
+\tab\tab are currently in use. \par
+\tab\tab The return value ranges from 1 to the number set by the\par
+\tab\tab function: \b SPU_SetVoiceNumber\b0 , or the default value 8.\par
+\par
+\par
+Synopsis:\tab CallSPU\tab\b GetVoiceNumber\par
+\b0\tab\tab move.l\tab\tab d0,voiceCount\par
+\par
+\par
+\par
+] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_GetMixFrequency\b0\fs20\par
+Input:\tab\tab none\par
+Output:\tab D0: mix Frequency\par
+\par
+\par
+Description:\tab This function returns the mix frequecy id value.\par
+\tab\tab The equates are defined within the spu_lib.inc file.\par
+\tab\par
+\tab\tab ; [SPU Mix Frequencies] -----------------------------------\par
+\tab\tab MF_8000             \tab equ     0\par
+\tab\tab MF_11025            \tab equ     1\par
+\tab\tab MF_16000            \tab equ     2\par
+\tab\tab MF_22050            \tab equ     3\par
+\tab\tab MF_32000            \tab equ     4\par
+\tab\tab MF_44100            \tab equ     5\par
+\tab\tab MF_MAX              \tab equ     MF_44100\par
+\tab\tab MF_DEFAULT\tab\tab equ     MF_16000\par
+\tab\tab ; ---------------------------------------------------------\par
+\par
+\par
+Synopsis:\tab CallSPU\tab\b GetMixFrequency\par
+\tab\tab\b0 move.l\tab\tab d0,currentMixFreq\par
+\par
+\par
+] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_SetVoiceNumber\b0\fs20\par
+Input:\tab\tab d0: voice count\par
+Output:\tab none\par
+\par
+\par
+Description:\tab This function sets the number of voices that are processed by the \tab\tab DSP. The maximum are 12, but if requied the number can be set \tab\tab down to reduce DSP mixing loops.\par
+\par
+\par
+\tab\tab Parameter:\b voice count\par
+\tab\tab\b0 Number of voice. The value should range from 1 up to the\par
+\tab\tab maxium possible voices number 12.\par
+\par
+\par
+Synopsis:\tab moveq\tab\tab #6,d0\par
+\tab\tab CallSPU\tab\b SetVoiceNumber\par
+\par
+\par
+\b0 ] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_GetJaguarType\b0\fs20\par
+Input:\tab\tab none\par
+Output:\tab d0: jagType\par
+\b\par
+\par
+\b0 Description:\tab The return values for \b jagType \b0 is 50 for PAL and 60 for NTSC\par
+\tab\tab Jaguars.\b\par
+\par
+\par
+\b0 Synopsis:\tab CallSPU\tab\b GetJaguarType\par
+\tab\tab\b0 cmpi.w\tab\tab #50,d0\par
+\tab\tab beq.b\tab\tab PAL_JAG\par
+\tab\tab cmpi.w\tab\tab #60,d0\par
+\tab\tab beq.b\tab\tab NTSC_JAG\b\par
+\par
+\par
+\b0\f1\fs32\par
+\par
+-----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 CDDA Functions\par
+\pard\nowidctlpar\b0\f1 -----------------------------------------------------------------------\par
+\par
+\f2\fs20 Function:\tab\b\fs24 SPU_GetCDDAOSample\b0\fs20\par
+Input:\tab\tab none\par
+Output:\tab D0: oversample value\par
+\par
+\par
+Description:\tab This function returns the current oversample value.\par
+\par
+\par
+Synopsis:\tab CallSPU\tab\b GetCDDAOSample\par
+\par
+\par
+\b0 ] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_GetCDDAVolume\b0\fs20\par
+Input:\tab\tab none\par
+Output:\tab D0: cdda volume in percent.\par
+\par
+\par
+Description:\tab This function returns the current CDDA volume in percent.\par
+\tab\tab 0 = silence, 100=full volume.\par
+\par
+\par
+Synopsis:\tab CallSPU\tab\b GetCDDAVolume\par
+\tab\tab\b0 move.l\tab\tab d0,currentCDDAVolume\b\par
+\par
+\par
+\b0 ] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_SetCDDAOSample\b0\fs20\par
+Input:\tab\tab D0: oversample value\par
+Output:\tab none\par
+\par
+\par
+Description:\tab This function sets the new oversample value.\par
+\par
+\tab\tab Parameter:\b oversample value\par
+\b0\tab\tab The values are defined in the \i spu_lib.inc\i0  file as follows:\par
+\par
+\tab\tab OSAMPLE_NONE        \tab equ     1\par
+\tab\tab OSAMPLE_2X          \tab\tab equ     1<<1\par
+\tab\tab OSAMPLE_4X          \tab\tab equ     1<<2\par
+\tab\tab OSAMPLE_8X          \tab\tab equ     1<<3\par
+\tab\tab OSAMPLE_DEFAULT     \tab equ     OSAMPLE_NONE\par
+\par
+\par
+Synopsis:\tab moveq\tab\tab #OSAMPLE_2X,d0\par
+\tab\tab CallSPU\tab\b SetCDDAOSample\par
+\par
+\par
+\b0 ] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_SetCDDAVolume\b0\fs20\par
+Input:\tab\tab D0: cdda volume\par
+Output:\tab none\par
+\par
+\par
+Description:\tab This function sets the new volume for CDDA data.\par
+\par
+\tab\tab Parameter:\b cdda volume\par
+\tab\tab\b0 The volume value is given in percent. 0=silence, 100=full volume\par
+\par
+\par
+Synopsis:\tab moveq\tab\tab #50,d0\par
+\tab\tab CallSPU\tab\b SetCDDAVolume\par
+\par
+\par
+\b0 ] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_EableCDDA\b0\fs20\par
+Input:\tab\tab none\par
+Output:\tab none\par
+\par
+\par
+Description:\tab Enables the DSP core to mix in the CDDA sample data to the\par
+\tab\tab sample data stream.\par
+\par
+\par
+Synopsis:\tab CallSPU\tab\b EnableCDDA\par
+\par
+\par
+\b0 ] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_DiableCDDA\b0\fs20\par
+Input:\tab\tab none\par
+Output:\tab none\par
+\par
+\par
+Description:\tab Disables the DSP core to look after the CDDA data.\par
+\par
+\par
+Synopsis:\tab CallSPU\tab\b DisableCDDA\par
+\par
+\par
+\par
+\par
+\b0\f1\fs32 -----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 Playback Functions\par
+\pard\nowidctlpar\b0\f1 -----------------------------------------------------------------------\par
+\f2\fs20\par
+\par
+Function:\tab\b\fs24 SPU_KeyOn\b0\fs20\par
+Input:\tab\tab A0: JSP or NULL\par
+\tab\tab A1: JSAM or NULL\par
+\tab\tab D0: sample\par
+\tab\tab D1: note\par
+Output:\tab D0:   0=no voice free\par
+\tab\tab      !=0=*voice\par
+\par
+\par
+Description:\tab This function issues the DSP to play a sample.\par
+\tab\tab The playback voice is allocated dynamically.\par
+\par
+\tab\tab Parameter:\b JSP or NULL\par
+\tab\tab\b0 If a \b JSP\b0  is used, then this parameter should point on a valid\par
+\tab\tab JSP in Jaguar's memory. Valid means first chars are 'JSP!'\par
+\tab\tab and the address is at least aligned to a word integral.\b\par
+\tab\tab\b0\par
+\tab\tab Parameter:\b JSAM of NULL\par
+\tab\tab\b0 If the parameter \b JSP\b0  is NULL (infact 0), then the sample behind\par
+\tab\tab the JSAM stucture is played. If \b JSP\b0  is !=0 then always \b JSP\b0  is used.\par
+\tab\tab see also: \b SPU_InitRawSample\b0 , \b SPU_InitSample\b0\par
+\par
+\tab\tab Parameter:\b sample\par
+\tab\tab\b0 This parameter is only relevant if \b JSP\b0  is deiserd to be used.\par
+\tab\tab The value ranges from 1 to the maxinum count of samples,\par
+\tab\tab that are stored within the \b JSP\b0 .\par
+\tab\tab If \b JSAM\b0  is used this parameter is unused.\par
+\tab\tab\par
+\tab\tab Parameter:\b note\par
+\tab\tab\b0 The desired note, at which the sample should be played.\par
+\tab\tab The defines can be found in the \i spu_lib.inc \i0 file.\par
+\b\par
+\tab\b0\tab The return value \i 0 \i0 indicates that no free voice has been found\par
+\tab\tab where to sample could be played, otherwise the voice pointer\par
+\tab\tab is retured. This pointer is used as parameter for functions like\par
+\tab\tab\b SPU_RetrigVoice. \b0\par
+\par
+\tab\tab\b NOTE\b0 : The data behind the voice pointer shouldn't be modifed\par
+\tab\tab           by hand otherwise unexpeceted results can occur.\par
+\tab\tab\tab Reliablity cannot be quarateed by modifiying data.\par
+\tab\tab\tab The \b SPU\b0  library implements a mechnism to protect against\par
+\tab\tab\tab clashed between MC68000 and the DSP.\par
+\tab\tab\tab\par
+\par
+Synopsis:\tab lea\tab\tab MyJSP,a0\par
+\tab\tab suba.l\tab\tab a1,a1\par
+\tab\tab moveq\tab\tab #4,d0\par
+\tab\tab moveq\tab\tab #NOTE_D4,d1\par
+\tab\tab CallSPU\tab\b KeyOn\par
+\b0\tab\tab move.l\tab\tab d0,usedVoice\par
+\par
+\tab\tab or\par
+\tab\tab\par
+\tab\tab suba.l\tab\tab a0,a0\par
+\tab\tab lea\tab\tab MyJSM,a1\par
+\tab\tab moveq\tab\tab #NOTE_B5,d1\par
+\tab\tab CallSPU\tab\b KeyOn\par
+\par
+\par
+\b0 ] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_KeyOnSync\b0\fs20\par
+Input:\tab\tab A0: JSP or NULL\par
+\tab\tab A1: JSAM or NULL\par
+\tab\tab D0: sample\par
+\tab\tab D1: note\par
+Output:\tab D0:   0=no sync voice \par
+\tab\tab      !=0=*voice\par
+\par
+\par
+Description:\tab This function is working like the function \b SPU_KeyOn,\par
+\tab\tab\b0 except that the new voice parameters are taken\par
+\tab\tab once per frame. There must be voices decleard as \b sync\b0 ,\par
+\tab\tab to get this function working.\par
+\par
+\tab\tab See \b SPU_SetVoiceAttr \b0 for more details.\par
+\tab\tab See \b SPU_KeyOn \b0 for more details about the function parameters.\par
+\par
+\par
+Synopsis:\tab lea\tab\tab MyJSP,a0\par
+\tab\tab suba.l\tab\tab a1,a1\par
+\tab\tab moveq\tab\tab #4,d0\par
+\tab\tab moveq\tab\tab #NOTE_D4,d1\par
+\tab\tab CallSPU\tab\b KeyOnSync\par
+\b0\tab\tab move.l\tab\tab d0,usedVoice\par
+\par
+\tab\tab or\par
+\tab\tab\par
+\tab\tab suba.l\tab\tab a0,a0\par
+\tab\tab lea\tab\tab MyJSM,a1\par
+\tab\tab moveq\tab\tab #NOTE_B5,d1\par
+\tab\tab CallSPU\tab\b KeyOnSync\par
+\par
+\b0\par
+] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_KeyOnVoice\b0\fs20\par
+Input:\tab\tab A0: JSP or NULL\par
+\tab\tab A1: JSAM or NULL\par
+\tab\tab D0: voiceNumb\par
+\tab\tab D1: sample\par
+\tab\tab D2: note\par
+Output:\tab D0:   0=no voice free\par
+\tab\tab      !=0=voice\par
+\par
+\par
+Description:\tab This function plays a sample in a specified voice.\par
+\tab\tab If the desired voice is in use by any other sample then\par
+\tab\tab the playback is cut off and the new sample is being played.\par
+\par
+\tab\tab Parameter:\b JSP or NULL\par
+\tab\tab\b0 If a \b JSP\b0  is used, then this parameter should point on a valid\par
+\tab\tab JSP in Jaguar's memory. Valid means first chars are 'JSP!'\par
+\tab\tab and the address is at least aligned to a word integral.\b\par
+\tab\tab\b0\par
+\tab\tab Parameter:\b JSAM of NULL\par
+\tab\tab\b0 If the parameter \b JSP\b0  is NULL (infact 0), then the sample behind\par
+\tab\tab the JSAM stucture is played. If \b JSP\b0  is !=0 then always \b JSP\b0  is used.\par
+\tab\tab see also: \b SPU_InitRawSample\b0 , \b SPU_InitSample\b0\par
+\par
+\tab\tab Parameter:\b voiceNumb\par
+\tab\tab\b0 Voice number where the samples should be played in.\par
+\tab\tab The values should be in the range 1 and the number set by\par
+\tab\tab\b SPU_SetVoiceNumber \b0 or the defual value of 8.\par
+\tab\tab If \b JSAM\b0  is used this parameter is unused.\par
+\par
+\tab\tab Parameter:\b sample\par
+\tab\tab\b0 This parameter is only relevant if \b JSP\b0  is deiserd to be used.\par
+\tab\tab The value ranges from 1 to the maxinum count of samples,\par
+\tab\tab that are stored within the \b JSP\b0 .\par
+\tab\tab If \b JSAM\b0  is used this parameter is unused.\par
+\tab\tab\par
+\tab\tab Parameter:\b note\par
+\tab\tab\b0 The desired note, at which the sample should be played.\par
+\tab\tab The defines can be found in the \i spu_lib.inc \i0 file.\par
+\b\par
+\b0\par
+\b\tab\b0\tab The return value 0\i  \i0 indicates that no free voice has been found\par
+\tab\tab where to sample could be played, otherwise the voice pointer\par
+\tab\tab is retured. This pointer is used as parameter for functions like\par
+\tab\tab\b SPU_RetrigVoice.\b0\par
+\par
+\tab\tab see \b SPU_KeyOn\b0  for more details.\par
+\par
+\par
+Synopsis:\tab lea\tab\tab MyJSP,a0\par
+\tab\tab suba.l\tab\tab a1,a1\par
+\tab\tab moveq\tab\tab #3,d0\par
+\tab\tab moveq\tab\tab #4,d1\par
+\tab\tab moveq\tab\tab #NOTE_D4,d2\par
+\tab\tab CallSPU\tab\b KeyOnVoice\par
+\b0\tab\tab move.l\tab\tab d0,usedVoice\par
+\par
+\tab\tab or\par
+\tab\tab\par
+\tab\tab suba.l\tab\tab a0,a0\par
+\tab\tab lea\tab\tab MyJSM,a1\par
+\tab\tab moveq\tab\tab #3,d0\par
+\pard\nowidctlpar\fi720\li720 moveq\tab\tab #NOTE_B5,d2\par
+\pard\nowidctlpar\tab\tab CallSPU\tab\b KeyOnVoice\par
+\b0\par
+\par
+] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_KeyOnVoiceSync\b0\fs20\par
+Input:\tab\tab A0: JSP or NULL\par
+\tab\tab A1: JSAM or NULL\par
+\tab\tab D0: voiceNumb\par
+\tab\tab D1: sample\par
+\tab\tab D2: note\par
+Output:\tab D0:   0=no voice free\par
+\tab\tab      !=0=voice\par
+\par
+\par
+Description:\tab This function is working like the function \b SPU_KeyOnVoice,\par
+\tab\tab\b0 except that the new voice parameters are taken\par
+\tab\tab once per frame. There must be voices decleard as \b sync\b0 ,\par
+\tab\tab to get this function working.\par
+\par
+\tab\tab See \b SPU_SetVoiceAttr \b0 for more details.\par
+\tab\tab See \b SPU_KeyOnVoice \b0 for more details about the function\par
+\tab\tab parameters.\par
+\par
+\par
+Synopsis:\tab lea\tab\tab MyJSP,a0\par
+\tab\tab suba.l\tab\tab a1,a1\par
+\tab\tab moveq\tab\tab #3,d0\par
+\tab\tab moveq\tab\tab #4,d1\par
+\tab\tab moveq\tab\tab #NOTE_D4,d2\par
+\tab\tab CallSPU\tab\b KeyOnVoiceSync\par
+\b0\tab\tab move.l\tab\tab d0,usedVoice\par
+\par
+\tab\tab or\par
+\tab\tab\par
+\tab\tab suba.l\tab\tab a0,a0\par
+\tab\tab lea\tab\tab MyJSM,a1\par
+\tab\tab moveq\tab\tab #3,d0\par
+\pard\nowidctlpar\fi720\li720 moveq\tab\tab #NOTE_B5,d2\par
+\pard\nowidctlpar\tab\tab CallSPU\tab\b KeyOnVoiceSync\par
+\b0\par
+\par
+] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_KeyOff\b0\fs20\par
+Input:\tab\tab A0: voice\par
+Output:\tab none\par
+\par
+\par
+Description:\tab This function sets a voice off.\par
+\par
+\tab\tab Parameter:\b voice\par
+\tab\tab\b0 This a pointer to a voice to key off. The pointer is returned\par
+\tab\tab by this functions: \b SPU_KeyOn \b0 and \b SPU_KeyOnVoice.\par
+\par
+\par
+\b0 Synopsis:\tab move.l\tab\tab usedVoice,a0\par
+\tab\tab CallSPU\tab\b KeyOff\par
+\par
+\par
+\b0 ] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_KeyOffVoice\b0\fs20\par
+Input:\tab\tab D0: \b voiceNumb\b0\par
+Output:\tab none\par
+\par
+\par
+Description:\tab This function sets a specifed voice off.\par
+\par
+\tab\tab Parameter:\b voiceNumb\par
+\tab\tab\b0 The voice number to key off.\par
+\tab\tab see: \b SPU_SetVoiceNumber\b0  for more details.\par
+\par
+\b\par
+\b0 Synopsis:\tab moveq\tab\tab #7,d0\par
+\tab\tab CallSPU\tab\b KeyOffVoice\par
+\par
+\b0\par
+] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_KeyOffVoices\b0\fs20\par
+Input:\tab\tab none\par
+Output:\tab none\par
+\par
+\par
+Description:\tab This function sets all voices between 1 and the voice number\par
+\tab\tab set by the function: SPU_SetVoiceNumber or the default value 8.\par
+\par
+\par
+Synopsis:\tab CallSPU\tab\b KeyOffVoices\par
+\par
+\b0\par
+\par
+] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_SetSFXVolume\b0\fs20\par
+Input:\tab\tab D0: volume\par
+Output:\tab none\par
+\par
+\par
+Description:\tab This function sets the master volume for the sample replay.\par
+\par
+\tab\tab Parameter:\b volume\par
+\tab\tab\b0 The volume value. 0=silence, 100=full volume.\par
+\par
+\par
+Synopsis:\tab CallSPU\tab\b SetSFXVolume\par
+\par
+\b0\par
+] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_SetVoiceAttr\b0\fs20\par
+Input:\tab\tab D0: voiceNumber\par
+\tab\tab D1: attributes\par
+Output:\tab none\par
+\par
+\par
+Description:\tab This functions sets the new attributes of a desired voice.\par
+\tab\tab Currently a voice can only get a \b sync\b0  attribute.\par
+\par
+\tab\tab Parameter:\b voiceNumber\par
+\b0\tab\tab This number specifes the voice.\par
+\tab\tab The number should be between 1 and the the current number of \tab\tab voices processed by the DSP.\par
+\par
+Synopsis:\tab moveq\tab\tab #1,d0\par
+\tab\tab moveq\tab\tab #VOICEF_SYNC,d1\par
+\tab\tab CallSPU\tab\b SetVoiceAttr\par
+\b0\par
+\par
+] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_SyncVoices\b0\fs20\par
+Input:\tab\tab none\par
+Output:\tab none\par
+\par
+\par
+Description:\tab After calling this function, the spu \b DSP\b0  core is issued to take all\par
+\tab\tab voices marked to be a  sync voice, at the start of the next frame. \par
+\tab\tab See \b SPU_SetVoiceAttr\b0  for details.\par
+\par
+Synopsis:\tab CallSPU\tab\b SyncVoices\par
+\b0\par
+\par
+\par
+\par
+\par
+\par
+\f1\fs32 -----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 Voice Control\par
+\pard\nowidctlpar\b0\f1 -----------------------------------------------------------------------\par
+\f2\fs20\par
+\par
+Function:\tab\b\fs24 SPU_RetrigVoiceNote\b0\fs20\par
+Input:\tab\tab A0: \b voice\par
+\tab\tab\b0 D0:\b  newNote\b0\par
+Output:\tab none\par
+\par
+\par
+Description:\tab This function retrigers the voice note without retrigering the sample\par
+\tab\tab currently played in this voice.\par
+\tab\tab\par
+\tab\tab Parameter:\b voice\par
+\tab\tab\b0 This a pointer to a voice to key off. The pointer is returned\par
+\tab\tab by this functions: \b SPU_KeyOn \b0 and \b SPU_KeyOnVoice.\par
+\par
+\tab\tab\b0 Parameter:\b newNote\par
+\tab\tab\b0 Sets the new note to be played.\par
+\tab\tab See note defined in the \i spu_lib.inc \i0 file.\b\par
+\b0\par
+\par
+Synopsis:\tab moveq\tab\tab #NOTE_B4,d0\par
+\tab\tab CallSPU\tab\b RetrigVoiceNote\par
+\par
+\b0\par
+] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_SetVoicePan\b0\fs20\par
+Input:\tab\tab A0: \b voice\par
+\tab\tab\b0 D0:\b  newPan\b0\par
+Output:\tab none\par
+\par
+\par
+Description:\tab This function retrigers the voice note without retrigering the sample\par
+\tab\tab currently played in this voice.\par
+\tab\tab\par
+\tab\tab Parameter:\b voice\par
+\tab\tab\b0 This a pointer to a voice to key off. The pointer is returned\par
+\tab\tab by this functions: \b SPU_KeyOn \b0 and \b SPU_KeyOnVoice.\par
+\par
+\tab\tab\b0 Parameter:\b newPan\par
+\tab\tab\b0 Sets the new voice pan.\par
+\tab\tab The value ranges from -127=leftmost, 0=center, 127=rigthmost.\b\par
+\b0\par
+\par
+Synopsis:\tab moveq\tab\tab #40,d0\par
+\tab\tab CallSPU\tab\b SetVoicePan\par
+\par
+\b0\par
+] --------------------------------------------------------------------- [\par
+\par
+\par
+Function:\tab\b\fs24 SPU_SetVoiceVolume\b0\fs20\par
+Input:\tab\tab A0: \b voice\par
+\tab\tab\b0 D0:\b  newVolume\b0\par
+Output:\tab none\par
+\par
+\par
+Description:\tab This function retrigers the voice note without retrigering the sample\par
+\tab\tab currently played in this voice.\par
+\tab\tab\par
+\tab\tab Parameter:\b voice\par
+\tab\tab\b0 This a pointer to a voice to key off. The pointer is returned\par
+\tab\tab by this functions: \b SPU_KeyOn \b0 and \b SPU_KeyOnVoice.\par
+\par
+\tab\tab\b0 Parameter:\b newPan\par
+\tab\tab\b0 Sets the new voice volume.\par
+\tab\tab The value ranges from 0=silence, 100=full volume.\b\par
+\b0\par
+\par
+Synopsis:\tab moveq\tab\tab #80,d0\par
+\tab\tab CallSPU\tab\b SetVoiceVolume\par
+\par
+\b0\par
+] --------------------------------------------------------------------- [\par
+\par
+\par
+\par
+\par
+\f1\fs32\par
+-----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 Sample Application\par
+\pard\nowidctlpar\b0\f1 -----------------------------------------------------------------------\par
+\f2\fs20\par
+\par
+A typical application looks like this:\par
+\par
+; [Init Phase] ---------------------------------\par
+\tab CallSPU \tab Init\par
+\par
+\tab lea     \tab\tab MySFX,a0\par
+\tab CallSPU \tab InitJSP\par
+\par
+\tab moveq   \tab #SPUMODE_NORMAL,d0\par
+\tab moveq   \tab #MF_16000,d1\par
+\tab CallSPU\tab SetMode\b\par
+\b0\par
+\tab CallSPU\tab EnableDSP\par
+\par
+\par
+; [Application Phase] --------------------------\par
+\tab lea     \tab\tab SFX,a0\par
+\tab suba.l  \tab a1,a1\par
+\tab moveq   \tab #6,d0\par
+\tab moveq   \tab #NOTE_F4,d1\par
+\tab CallSPU \tab KeyOn\par
+\par
+\par
+; [Exit Phase: normally with BJL] -------------\par
+\tab Call\tab\tab DisableDSP\par
+\par
+\par
+\par
+Description:\tab\b CallSPU\b0  is a macro declared in the \i spu_lib.inc \i0 as follows:\par
+\par
+\tab\tab .macro \b  CallSPU \b0 vec\par
+\tab\tab         move.l\tab a6,-(sp)\par
+\tab\tab         lea        \b SPULibrary\b0 ,a6\par
+\tab\tab         jsr         SPU_\\vec(a6)\par
+\tab\tab         movea.l\tab (sp)+,a6\par
+\tab\tab .endm\par
+\par
+\par
+\tab\tab\b SPULibrary \b0 is spulib.o's one and only external symbol.\par
+\tab\tab This is a sort of object oriented technique, which\par
+\tab\tab only gives access to the public methods\par
+\tab\tab Library data is private, no outer access is allowed.\par
+\tab\tab All parameters and varaibles should be set or get\par
+\tab\tab via the corresponding API calls, otherwise the proper\par
+\tab\tab functionallity connot be guaranteed.\par
+\par
+\par
+\par
+\par
+\f1\fs32 -----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 Compilation Example\par
+\pard\nowidctlpar\b0\f1 -----------------------------------------------------------------------\par
+\f2\fs20\par
+Assume the following directory structure:\par
+\par
+LIBS           \tab <DIR>        28.10.02   9:08 libs\par
+INCLUDE        <DIR>        08.03.02   8:46 include\par
+BIN            \tab <DIR>        08.03.02   8:47 bin\par
+\par
+Place the \i spulib.o \i0 into the LIBS drawer, and the \i spu_lib.inc \i0 into the INCLUDE drawer.\par
+Set the two global symbols ALNPATH and MACPATH to your drawers.\par
+\par
+Example:\par
+set ALNPATH=<YOUR JAGUAR DEVKIT>:\\libs\par
+set MACPATH=<YOUR JAGUAR DEVKIT>:\\include\par
+\par
+Now madmac and aln knows where to search for the include or library files.\par
+\par
+The following lines should compile your application.\par
+\par
+>mac -fb -o test.o test.s\par
+>aln -n -rp -o bin\\test.abs -a 4000 x x test.o spulib.o\par
+\par
+\par
+\par
+\par
+\f1\fs32 -----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 Creating a JSP!\par
+\pard\nowidctlpar\b0\f1 -----------------------------------------------------------------------\par
+\f2\fs20\par
+In general a \b JSP!\b0  is a binary image with sequencially stacked together samples with thier default replay parameters. The following text describes sample pack structure version 1.0.\par
+\par
+A \b JSP! \b0 start with a classic header that looks like this:\par
+\par
+; [JSP Structure] -----------------------------------\par
+jsp_Magic:\tab .ds.l\tab\tab 1\par
+jsp_Version:\tab .ds.w    \tab 1\par
+jsp_Samples:\tab .ds.w    \tab 1\par
+jsp_SIZEOF: \tab .ds.w    \tab 1 \par
+; ---------------------------------------------------------\par
+\par
+Structure descripton:\par
+\par
+Member: \b jsp_Magic\par
+\b0\tab\tab This 32bit field always holds the ID. Which is JSP! (0x4A535021)\par
+\tab\tab Nedded for identification.\par
+\par
+Member: \b jsp_Version\b0\par
+\tab\tab Currently holds the value $1. This field may be extended\par
+\tab\tab in future version.\par
+\par
+Member:\b  jsp_Samples\par
+\b0\tab\tab Number of samples stored within this \b JSP!\par
+\b0\par
+Member: \b jsp_SIZEOF\b0\par
+\tab\tab This label indicates the total size of this stucture in memory.\par
+\tab\tab It is also the start address where \i n\i0  absolute offsets to the\par
+\tab\tab begining of a \b JSP! \b0 are stored. (n = \b jsp_Samples\b0 )\par
+\par
+\par
+\par
+Just behind the header and the absulte offsets is the beginning of the sample\par
+structure which contains the parameters and data.\par
+\par
+The sample strcutre has the follwing declaration\par
+\par
+; [JSP sample structure] ----------------------------------\par
+jsps_size:\tab\tab .ds.l    \tab 1\par
+jsps_loopBegin:\tab .ds.l    \tab 1\par
+jsps_loopSize:  \tab .ds.l    \tab 1\par
+jsps_res:       \tab\tab .ds.w\tab\tab 1\par
+jsps_vol:       \tab\tab .ds.w    \tab 1\par
+jsps_fineTune:  \tab .ds.w\tab\tab 1\par
+jsps_pan:       \tab .ds.w    \tab 1\par
+jsps_loopType:  \tab .ds.w    \tab 1\par
+jsps_relNote:   \tab .ds.w    \tab 1\par
+jsps_SIZEOF:    \tab .ds.w    \tab 1\par
+; -----------------------------------------------------------------\par
+\par
+\par
+Structure descripton:\par
+\par
+Member: \b jsp_size\b0\par
+\tab\tab Sample size in bytes.\par
+\par
+Member: \b jsps_loopBegin\par
+\b0\tab\tab The starting point of a loop in bytes.\par
+\par
+Member:\b  jsps_loopSize\b0\par
+\tab\tab Loop size in bytes form the starting point in bytes.\par
+\par
+Member: \b jsps_res\b0\par
+\tab\tab Sample resolution. 8=bit, 16=16bit\par
+\par
+Member: \b jsps_vol\b0\par
+\tab\tab Sample volume. Min=0, max=$4000\par
+\par
+Member: \b jsps_fineTune\b0  (not used)\par
+\tab\tab Finetune. -127 .. 128 steps\par
+\par
+Member: \b jsps_pan\b0\par
+\tab\tab Sample panning position. -127=left, 0=center, 127=right\par
+\par
+Member: \b jsps_loopType\b0\par
+\tab\tab Sample loop type. (1=Forward, 2=PingPong)\par
+\par
+Member: \b jsps_relNote\b0  (not used)\par
+\tab\tab Relative note to desired playnote in halftones. \par
+\par
+Member: \b jsps_SIZEOF\b0\par
+\tab\tab Indicates the size of a this sturcture and is the starting point\par
+\tab\tab of the sample data.\par
+\par
+\par
+\par
+The commandline tool 'jagmc' makes it is possible to create a \b JSP!\b0  out\par
+of a FastTracker v2.0+ module.\par
+The structure above is laid back on the posiblites of FT's sample\par
+editor where all the varaibles can be edited easily.\par
+\par
+jagmc can be found on http://www.nanomonic.de/jaguar64/\par
+\par
+\par
+\par
+\par
+\f1\fs32 -----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 General about Volume\par
+\pard\nowidctlpar\b0\f1 -----------------------------------------------------------------------\par
+\f2\fs20\par
+The volume parameter used in every volume function is defined as follows:\par
+0=quiet, 100=full volume.\par
+\par
+The values are percents of the default maximum possible volume value\par
+as used by the \b DSP\b0  to compute the output volume of a voice.\par
+The maximum volume value for the \b DSP\b0  is $4000, which\par
+means $4000/100 = 163,84 volume units in 100 steps.\par
+\par
+The reason for choosing this kind of volume notation is that\par
+it is easier to imagine the traget volume.\par
+Example: 30% is more imagiable than a value of 4915.\par
+\par
+It is also possible to envolume a sample at realtime by specifing the volume value\par
+larger than 100. A value of 120 for example would make a sample sound louder by 20% form its orginal.\par
+\b\fs22 Caution:\tab\fs20 Loud samples may sound overboosed and distorted,\par
+\tab\tab expecially when pan value is moved towards left or right.\par
+\tab\tab This is only suitable for samples with low amplitude.\par
+\par
+\b0 The maximum volume is 200%.\par
+\par
+\par
+\par
+\par
+\f1\fs32 -----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 JSAM Structure\par
+\pard\nowidctlpar\b0\f1 -----------------------------------------------------------------------\par
+\f2\fs20\par
+This structure is very similar to this as used in the \b JSP!'s\b0 .\par
+\b Note:\b0\par
+Initialization of this sturcure by hand or as constant structure within the\par
+source code, requires some aspects that must be though of.\par
+The value within this sturcture are "raw" values as used by the DSP core.\par
+- all sizes attributes are defined in samples not in bytes.\par
+- volume is specified as a "real" volume value.\par
+\par
+; [JSample Structure] ---------------------------\par
+jsam_mem:\tab\tab .ds.l   \tab 1\par
+jsam_size:         \tab .ds.l   \tab 1 \par
+jsam_loopBegin:    \tab .ds.l   \tab 1\par
+jsam_loopSize:     \tab .ds.l  \tab 1\par
+jsam_res:          \tab .ds.w\tab 1\par
+jsam_vol:          \tab .ds.w\tab 1\par
+jsam_pan:          \tab .ds.w \tab 1\par
+jsam_loopType:     \tab .ds.w  \tab 1\par
+jsam_SIZEOF:       \tab .ds.w\tab 1\par
+; ---------------------------------------------------------\par
+\par
+Member: \b jsam_mem\b0\par
+\tab\tab Pointer to sample data. For 16bit samles at least aligned to a word\par
+\tab\tab integral.\par
+\par
+Member: \b jsam_size\b0\par
+\tab\tab sample size in samples not bytes. For 16bit samples that means \tab\tab size/2.\par
+\par
+Member: \b jsam_loopBegin\par
+\tab\tab\b0 offset relative to the begining of the samples in samples not bytes.\par
+\par
+Member: \b jsam_loopSize\par
+\tab\tab\b0 loop size in samples not bytes.\par
+\tab\tab The sum of \b jsam_loopBegin+jsam_loopSize \b0 must be within the \tab\tab range of \b jsam_size\b0 .\par
+\par
+Member: \b jsam_res\par
+\tab\tab\b0 sample\b  \b0 resolution, that is 8 or 16 bit.\par
+\par
+Member: \b jsam_volume\par
+\tab\tab\b0 sample\b  \b0 volume, range $0-$4000.\par
+\par
+Member: \b jsam_pan\par
+\tab\tab\b0 sample\b  \b0 pan position. $0 left, $7F center, 254=right.\b\par
+\b0\par
+Member: \b jsam_loopType\par
+\b0\tab\tab The loop type as defined in the spu_lib.inc file.\par
+\par
+\par
+\par
+\par
+\f1\fs32 -----------------------------------------------------------------------\par
+\pard\nowidctlpar\qc\b\f2 Disclaimer & License\f1\fs40\par
+\pard\nowidctlpar\b0\fs32 -----------------------------------------------------------------------\par
+\f2\fs20 The Jaguar SPU library was developed using a standard \b Jaguar\b0  with \b BJL\b0  (Behind Jaggy Lines by Bastian Schick) modifications and a standard Jaguar CDROM unit. I'm not responsible for any damages to your system using \b SPU library\b0  and any \b SPU\b0  subset, since the development system wasn't damaged during the development of this software.\par
+\par
+If you use SPU lib please give me a credit.\b\par
+\b0\par
+Contact the author at:\par
+jrob@spaceozon.net\par
+\par
+}
+ 
